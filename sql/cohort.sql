@@ -1,6 +1,6 @@
 with icu_age as (
     select *,
-           date_part('year', intime) - date_part('year', dob) as age
+           date_part('year', age(intime, dob)) as age
       from icustays
       left join patients using (subject_id)
 )
@@ -53,7 +53,7 @@ with icu_age as (
 , cohort as (
     select *
       from population
-      left join echo_group on using (hadm_id)
+      left join echo_group using (hadm_id)
 )
 
 select * from cohort;
