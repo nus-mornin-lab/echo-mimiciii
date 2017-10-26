@@ -33,7 +33,7 @@ with angus_group as (
 
 , population as (
     select *
-      from (select distinct icustay_id, first_careunit from icustays) a
+      from (select distinct icustay_id, first_careunit, intime, outtime from icustays) a
       left join angus_group using (icustay_id)
       left join icu_age using (icustay_id)
       left join icu_order using (icustay_id)
