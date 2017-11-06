@@ -27,4 +27,4 @@ with vasofirstday as (
     natural left join icu_adm_wday
 )
 
-select * from basics limit 10;
+select * from basics;
