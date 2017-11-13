@@ -1,10 +1,10 @@
 with vasofirstday as (
     select icustay_id,
-           case when starttime between intime and intime + interval '1 day' and
-                     starttime <= outtime then 1
-           else 0 end as vaso
+           max(case when starttime between intime and intime + interval '1 day' and
+               starttime <= outtime then 1 else 0 end) as vaso
     from cohort
     left join vasopressordurations using (icustay_id)
+    group by icustay_id
 )
 
 , icu_adm_wday as (
