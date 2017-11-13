@@ -15,7 +15,7 @@ with vasofirstday as (
 
 , basics as (
     select *
-    from (select subject_id, hadm_id, icustay_id, age, echo from cohort) co
+    from cohort co
     natural left join (select subject_id, gender from patients) g
     natural left join (select icustay_id, weight from weightfirstday) w
     natural left join (select icustay_id, saps from saps) sa

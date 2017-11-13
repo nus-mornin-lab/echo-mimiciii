@@ -19,12 +19,13 @@ with vital_signs as (
 )
 
 , vital_signs_cohort as (
-    select subject_id, hadm_id, icustay_id, charttime, label, valuenum
+    select icustay_id, charttime, label, valuenum
     from cohort
     left join vital_signs using (icustay_id)
     where charttime between intime and intime + interval '1 day'
           and charttime between intime and outtime
           and label is not null
+          and valuenum is not null
 )
 
 select * from vital_signs_cohort;
