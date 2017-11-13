@@ -41,6 +41,7 @@ with lab_tests as (
     where charttime between intime and intime + interval '1 day'
           and charttime between intime and outtime
           and label is not null
+          and valuenum is not null
 )
 
 select * from lab_tests_cohort;
