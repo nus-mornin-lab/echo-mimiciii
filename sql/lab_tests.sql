@@ -34,7 +34,7 @@ with lab_tests as (
                 when label = 'bun' and lab.valuenum between 6 and 20 then 0
                 when label = 'lactate' and lab.valuenum between 0.5 and 2.2 then 0
                 when label = 'creatinine' and co.gender = 'M' and lab.valuenum <= 1.3 then 0
-                when label = 'creatinine' and co.gender = 'F' and  lab.valuenum <= 1.1 then 0
+                when label = 'creatinine' and co.gender = 'F' and lab.valuenum <= 1.1 then 0
                 when label = 'ph' and lab.valuenum between 7.38 and 7.42 then 0
                 when label = 'po2' and lab.valuenum between 75 and 100 then 0
                 when label = 'pco2' and lab.valuenum between 35 and 45 then 0
