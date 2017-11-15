@@ -21,7 +21,8 @@ with vasofirstday as (
 )
 
 , basics as (
-    select *
+    select *,
+           extract(epoch from (outtime - intime))/24.0/60.0/60.0 as icu_los_day
     from cohort co
     natural left join (select subject_id, gender from patients) g
     natural left join (select icustay_id, weight from weightfirstday) w
