@@ -12,3 +12,7 @@ make_view_sql <- function(sql, title, type = "materialized view") {
         rm_semi_colon_end(sql), title, type
     )
 }
+
+file_to_sql_view <- function(fname, title, type = "materialized view") {
+    readr::read_file(fname) %>% make_view_sql(title, type)
+}
