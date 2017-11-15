@@ -13,6 +13,13 @@ with vasofirstday as (
     from cohort
 )
 
+, mort as (
+    select hadm_id,
+           case when pat.dod <= (co.intime + interval '28' day) then 1 else 0 end as mort_28_day
+    from cohort co
+    left join patients pat using (subject_id)
+)
+
 , basics as (
     select *
     from cohort co
@@ -25,6 +32,7 @@ with vasofirstday as (
     natural left join (select icustay_id, vent from ventfirstday) vent
     natural left join vasofirstday
     natural left join icu_adm_wday
+    natural left join mort
 )
 
 select * from basics;
