@@ -9,7 +9,8 @@ with vasofirstday as (
 
 , icu_adm_wday as (
     select icustay_id,
-           extract(dow from intime) as weekday
+           extract(dow from intime) as icu_adm_weekday,
+           extract(hour from intime) as icu_adm_hour
     from cohort
 )
 
