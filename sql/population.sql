@@ -4,11 +4,17 @@ with angus_group as (
       left join angus_sepsis using (hadm_id)
 )
 
-, icu_age as (
+, icu_age_raw as (
     select icustay_id,
            extract('epoch' from (intime - dob)) / 60.0 / 60.0 / 24.0 / 365.242 as age
       from icustays
       left join patients using (subject_id)
+)
+
+, icu_age as (
+    select icustay_id,
+           case when age >= 130 then 91.5 else age end as age
+      from icu_age_raw
 )
 
 , icu_order as (
