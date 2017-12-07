@@ -8,6 +8,8 @@ with vital_signs as (
             else null end as label,
 
             case when itemid in (223761,678) and ((valuenum-32)/1.8)<10 then null
+                 when itemid in (456,52,6702,443,220052,220181,225312) and (valuenum <= 0 or valuenum >= 300) then null
+                 when itemid in (211,220045) and (valuenum <= 0 or valuenum >= 300) then null
                  when itemid in (223762,676) and valuenum < 10 then null
                  -- convert F to C
                  when itemid in (223761,678) then (valuenum-32)/1.8
