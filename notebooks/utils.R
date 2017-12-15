@@ -1,5 +1,10 @@
+strip_space <- function(s) {
+    gsub("[[:space:]]+$", "", s)
+}
+
 rm_semi_colon_end <- function(s) {
-    if (endsWith(s, ";")) return(s %>% substr(1, nchar(.) - 1))
+    space_stripped <- strip_space(s)
+    if (endsWith(space_stripped, ";")) return(space_stripped %>% substr(1, nchar(.) - 1))
     return(s)
 }
 
