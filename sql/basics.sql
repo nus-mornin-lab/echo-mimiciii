@@ -15,10 +15,18 @@ with vasofirstday as (
 )
 
 , mort as (
-    select hadm_id,
-           case when pat.dod <= (co.intime + interval '28' day) then 1 else 0 end as mort_28_day
+    select co.hadm_id,
+           coalesce(adm.deathtime, pat.dod, null) as deathtime
     from cohort co
+    left join (select hadm_id, deathtime from admissions) adm using (hadm_id)
     left join patients pat using (subject_id)
+)
+
+, mort_28 as (
+    select hadm_id,
+           case when deathtime <= (co.intime + interval '28' day) then 1 else 0 end as mort_28_day
+    from cohort co
+    natural left join mort
 )
 
 , basics as (
@@ -35,6 +43,7 @@ with vasofirstday as (
     natural left join vasofirstday
     natural left join icu_adm_wday
     natural left join mort
+    natural left join mort_28
 )
 
 select * from basics;

@@ -37,6 +37,7 @@ with norepinephrine_cv as (
     where itemid in (221653)
 )
 
+
 , dobutamine as (
     select co.icustay_id, coalesce(mv.amount, cv.amount) as amount
     from cohort co
@@ -48,38 +49,100 @@ with norepinephrine_cv as (
 
 , dobutamine_flag as (
     select icustay_id,
-        case when amount is not null then 1 else 0 end as dobutamine_flag
+        case when sum(amount) is not null then 1 else 0 end as dobutamine_flag
     from dobutamine
-)
-
--- select * from norepinephrine_max;
-
-, vasoduration_discrete as (
-    select co.icustay_id, vaso.duration_hours
-    from cohort co
-    left join vasopressordurations vaso on co.icustay_id = vaso.icustay_id
-        and vaso.starttime between co.intime and co.outtime
-        and vaso.endtime between co.intime and co.outtime
-)
-
-, vasoduration as (
-    select icustay_id, coalesce(sum(duration_hours), 0) as vasoduration
-    from vasoduration_discrete
     group by icustay_id
 )
 
-, ventduration_discrete as (
-    select co.icustay_id, vent.duration_hours
-    from cohort co
-    left join ventdurations vent on co.icustay_id = vent.icustay_id
-        and vent.starttime between co.intime and co.outtime
-        and vent.endtime between co.intime and co.outtime
+/*
+, dobutamine as (
+    select distinct icustay_id, 1 as dobutamine_flag
+    from dobutaminedurations
 )
 
-, ventduration as (
-    select icustay_id, coalesce(sum(duration_hours), 0) as ventduration
-    from ventduration_discrete
-                group by icustay_id
+, dobutamine_flag as (
+    select icustay_id, coalesce(dobutamine_flag, 0) as dobutamine_flag
+    from cohort
+    natural left join dobutamine
+)
+*/
+
+-- select * from norepinephrine_max;
+
+, vasofree_0 as (
+    select icustay_id, starttime, 
+        case when (co.intime + interval '28' day) <= endtime then (co.intime + interval '28' day) else endtime end as endtime,
+        co.outtime
+    from merged_data co
+    left join vasopressordurations vs using (icustay_id)
+)
+
+, vasofree_1 as (
+    select icustay_id, starttime,
+        case when outtime <= endtime then outtime else endtime end as endtime
+    from vasofree_0
+)
+
+, vasofree_2 as (
+    select icustay_id, extract(epoch from endtime - starttime) / 60.0 / 60.0 as duration_hours
+    from vasofree_1
+)
+
+, vasofree_3 as (
+    select icustay_id, sum(duration_hours) / 24.0 as vasoduration
+    from vasofree_2
+    group by icustay_id
+)
+
+, vasofree_4 as (
+    select icustay_id, 28 - vasoduration as vasofreeday28
+    from vasofree_3
+)
+
+, vasofree as (
+    select icustay_id,
+        case when mort_28_day = 0 then vasofreeday28
+             else 0 end as vasofreeday28
+    from merged_data co
+    left join vasofree_4 using (icustay_id)
+)
+
+, ventfree_0 as (
+    select icustay_id, starttime,
+        case when (co.intime + interval '28' day) <= endtime then (co.intime + interval '28' day) else endtime end as endtime,
+        co.outtime
+    from merged_data co
+    left join ventdurations ve using (icustay_id)
+)
+
+, ventfree_1 as (
+    select icustay_id, starttime,
+        case when outtime <= endtime then outtime else endtime end as endtime
+    from ventfree_0
+)
+
+, ventfree_2 as (
+    select icustay_id, extract(epoch from endtime - starttime) / 60.0 / 60.0 as duration_hours
+    from ventfree_1
+)
+
+, ventfree_3 as (
+    select icustay_id, sum(duration_hours) / 24.0 as ventduration
+    from ventfree_2
+    group by icustay_id
+)
+
+, ventfree_4 as (
+    select icustay_id, 28 - ventduration as ventfreeday28
+    from ventfree_3
+)
+
+, ventfree as (
+    select icustay_id,
+        case when mort_28_day = 0 then ventfreeday28
+             else 0 end as ventfreeday28
+    from merged_data co
+    left join ventfree_4 using (icustay_id)
 )
 
 , serum_1 as (
@@ -121,14 +184,44 @@ with norepinephrine_cv as (
     group by hadm_id
 )
 
+, sofa_2 as (
+    select co.icustay_id,
+        case when co.deathtime between (co.intime + interval '1' day) and (co.intime + interval '2' day) then 24
+        else sf.sofa end as sofa
+    from merged_data co
+    left join sofasecond sf using (icustay_id)
+)
+
+, sofa_3 as (
+    select co.icustay_id,
+        case when co.deathtime between (co.intime + interval '2' day) and (co.intime + interval '3' day) then 24
+        else sf.sofa end as sofa
+    from merged_data co
+    left join sofathird sf using (icustay_id)
+)
+
+, sofa_3_days as (
+    select *
+    from (select icustay_id from cohort) co
+    natural left join (select icustay_id, sofa as sofa_1 from sofa) s1
+    natural left join (select icustay_id, sofa as sofa_2 from sofa_2) s2
+    natural left join (select icustay_id, sofa as sofa_3 from sofa_3) s3
+)
+
+, sofa_drop as (
+    select icustay_id, sofa_1 as sofa, sofa_1 - sofa_2 as sofa_drop_2, sofa_1 - sofa_3 as sofa_drop_3
+    from sofa_3_days
+)
+
 , subgroup as (
     select *
-    from (select icustay_id, hadm_id from cohort)
+    from (select icustay_id, hadm_id, echo from cohort) co
     natural left join norepinephrine_max
     natural left join dobutamine_flag
-    natural left join vasoduration
-    natural left join ventduration
+    natural left join vasofree
+    natural left join ventfree
     natural left join serum
+    natural left join sofa_drop
 )
 
 select * from subgroup;
