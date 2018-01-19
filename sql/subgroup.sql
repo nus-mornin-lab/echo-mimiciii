@@ -101,8 +101,8 @@ with norepinephrine_cv as (
 
 , vasofree as (
     select icustay_id,
-        case when mort_28_day = 0 then vasofreeday28
-             else 0 end as vasofreeday28
+        coalesce(case when mort_28_day = 0 then vasofreeday28
+                      else 0 end, 28) as vasofreeday28
     from merged_data co
     left join vasofree_4 using (icustay_id)
 )
@@ -139,8 +139,8 @@ with norepinephrine_cv as (
 
 , ventfree as (
     select icustay_id,
-        case when mort_28_day = 0 then ventfreeday28
-             else 0 end as ventfreeday28
+        coalesce(case when mort_28_day = 0 then ventfreeday28
+                      else 0 end, 28) as ventfreeday28
     from merged_data co
     left join ventfree_4 using (icustay_id)
 )

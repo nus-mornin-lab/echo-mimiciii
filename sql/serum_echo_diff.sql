@@ -26,25 +26,24 @@ with serum_1 as (
 )
 
 , serum_echo_diff as (
-    select hadm_id, label, serum_after - serum_before as serum_diff
-    from merged_data co
-    left join serum_before bf using (hadm_id)
-    left join serum_after at using (hadm_id, label)
+    select hadm_id, label, serum_before - serum_after as serum_diff
+    from serum_before
+    inner join serum_after using (hadm_id, label)
 )
 
-, unpivot as (
-    select hadm_id,
-        max(case when label = 'creatinine' then serum_diff else null end) as creatinine_diff,
-        max(case when label = 'lactate' then serum_diff else null end) as lactate_diff
-    from serum_echo_diff
-    group by hadm_id
-)
+-- , unpivot as (
+--     select hadm_id,
+--         max(case when label = 'creatinine' then serum_diff else null end) as creatinine_diff,
+--         max(case when label = 'lactate' then serum_diff else null end) as lactate_diff
+--     from serum_echo_diff
+--     group by hadm_id
+-- )
 
-, serum_echo_diff_final as (
-    select * from unpivot
-)
+-- , serum_echo_diff_final as (
+--     select * from unpivot
+-- )
 
-select * from serum_echo_diff_final;
+select * from serum_echo_diff;
 
 
 
