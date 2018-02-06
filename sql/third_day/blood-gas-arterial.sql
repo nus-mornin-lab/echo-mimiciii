@@ -1,6 +1,5 @@
-
-DROP MATERIALIZED VIEW IF EXISTS bloodgassecondarterial CASCADE;
-CREATE MATERIALIZED VIEW bloodgassecondarterial AS
+DROP MATERIALIZED VIEW IF EXISTS bloodgasthirdarterial CASCADE;
+CREATE MATERIALIZED VIEW bloodgasthirdarterial AS
 with stg_spo2 as
 (
   select SUBJECT_ID, HADM_ID, ICUSTAY_ID, CHARTTIME
@@ -56,7 +55,7 @@ with stg_spo2 as
 select bg.*
   , ROW_NUMBER() OVER (partition by bg.icustay_id, bg.charttime order by s1.charttime DESC) as lastRowSpO2
   , s1.spo2
-from bloodgassecond bg
+from bloodgasthird bg
 left join stg_spo2 s1
   -- same patient
   on  bg.icustay_id = s1.icustay_id
