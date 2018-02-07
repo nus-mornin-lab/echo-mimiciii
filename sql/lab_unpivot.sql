@@ -1,4 +1,3 @@
-
 with lab_summary as (
     select distinct hadm_id, label
     , first_value(valuenum) over (partition by hadm_id, label order by charttime) as fst_val
