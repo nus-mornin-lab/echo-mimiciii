@@ -11,10 +11,10 @@ with serum_1 as (
 
 , serum_before as (
     select distinct co.hadm_id, sr.label,
-        first_value(valuenum) over (partition by co.hadm_id, sr.label order by sr.charttime desc) as serum_before
+        first_value(valuenum) over (partition by co.hadm_id, sr.label order by sr.charttime) as serum_before
     from merged_data co
     left join serum_1 sr on co.hadm_id = sr.hadm_id
-        and sr.charttime between co.echo_time and co.intime
+        and sr.charttime >= co.intime and sr.charttime < (co.echo_time + interval '2' day)
 )
 
 , serum_after as (
