@@ -14,7 +14,7 @@ with serum_1 as (
         first_value(charttime) over (partition by co.hadm_id, sr.label order by sr.charttime) as fst_serum
     from merged_data co
     left join serum_1 sr on co.hadm_id = sr.hadm_id
-        and sr.charttime between date_trunc('day', co.intime) and co.outtime
+        and sr.charttime between co.intime and co.outtime
 )
 
 , serum_before as (
@@ -22,7 +22,7 @@ with serum_1 as (
         first_value(valuenum) over (partition by co.hadm_id, sr.label order by sr.charttime) as serum_before
     from merged_data co
     left join serum_1 sr on co.hadm_id = sr.hadm_id
-        and sr.charttime between date_trunc('day', co.intime) and co.outtime
+        and sr.charttime between co.intime and co.outtime
 )
 
 , serum_after_0 as (
