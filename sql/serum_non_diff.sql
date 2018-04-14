@@ -36,7 +36,8 @@ with serum_1 as (
         first_value(valuenum) over (partition by co.hadm_id, sr.label order by sr.charttime) as serum_after
     from serum_after_0 co
     left join serum_1 sr on co.hadm_id = sr.hadm_id
-        and sr.charttime between (co.fst_serum + interval '2' day) and co.outtime
+        and co.label = sr.label
+        and sr.charttime between (co.fst_serum + interval '1' day) and co.outtime
 )
 
 , serum_non_diff as (

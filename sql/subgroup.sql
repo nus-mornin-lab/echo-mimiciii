@@ -145,45 +145,6 @@ with norepinephrine_cv as (
     left join ventfree_4 using (icustay_id)
 )
 
-, serum_1 as (
-    select hadm_id, valuenum, charttime,
-        case when itemid in (50813) then 'lactate'
-             when itemid in (50912) then 'creatinine'
-        else null end as label
-    from labevents
-    where itemid in (50813, 50912)
-    and valuenum is not null
-    and valuenum > 0
-)
-
-, serum_2 as (
-    select co.hadm_id, se.label, se.valuenum, se.charttime
-    from cohort co
-    left join serum_1 se on co.hadm_id = se.hadm_id
-        and se.charttime between co.intime and co.outtime
-)
-
-, serum_3 as (
-    select distinct hadm_id, label,
-        max(valuenum) over (partition by hadm_id, label) as max_val,
-        first_value(valuenum) over (partition by hadm_id, label order by charttime desc) as last_val
-    from serum_2
-)
-
-, serum_4 as (
-    select hadm_id, label,
-        max_val - last_val as reduction
-    from serum_3
-)
-
-, serum as (
-    select hadm_id,
-        max(case when label = 'lactate' then reduction else null end) as lactate_reduction,
-        max(case when label = 'creatinine' then reduction else null end) as creatinine_reduction
-    from serum_4
-    group by hadm_id
-)
-
 , sofa_2 as (
     select co.icustay_id,
         case when co.deathtime between (co.intime + interval '1' day) and (co.intime + interval '2' day) then 24
@@ -220,7 +181,6 @@ with norepinephrine_cv as (
     natural left join dobutamine_flag
     natural left join vasofree
     natural left join ventfree
-    natural left join serum
     natural left join sofa_drop
 )
 
