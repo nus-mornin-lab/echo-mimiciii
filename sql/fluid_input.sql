@@ -42,44 +42,24 @@ with fluid_cv_0 as (
     and amount > 0
 )
 
--- , fluid_mv_1 as (
---     select co.icustay_id, mv.itemid, mv.amount, mv.starttime, mv.endtime,
---         co.intime as day0,
---         co.intime + interval '1' day as day1,
---         co.intime + interval '2' day as day2,
---         co.intime + interval '3' day as day3,
---         co.outtime
---     from merged_data co
---     left join fluid_mv_0 mv on co.icustay_id = mv.icustay_id
--- )
-
--- , fluid_mv_2 as (
---     select icustay_id, itemid, amount, starttime, endtime, day0, outtime,
---         case when endtime < day1 then amount
---             when endtime between day0 and day1 then
---             least(cast(((extract (epoch from endtime - day0)) / (extract (epoch from endtime - starttime))) as numeric), 1.0)
---             else null end as amountday1
---     from fluid_mv_1
--- )
-
 , days as (
     (select icustay_id, intime as daystart,
             intime + interval '1' day as dayend,
             1 as nday
-        from merged_data
-        where deathtime is null or deathtime >= intime + interval '3' day)
+        from merged_data)
+        -- where deathtime is null or deathtime >= intime + interval '3' day)
     union
     (select icustay_id, intime + interval '1' day as daystart,
             intime + interval '2' day as dayend,
             2 as nday
-        from merged_data
-        where deathtime is null or deathtime >= intime + interval '3' day)
+        from merged_data)
+        -- where deathtime is null or deathtime >= intime + interval '3' day)
     union
     (select icustay_id, intime + interval '2' day as daystart,
             intime + interval '3' day as dayend,
             3 as nday
-        from merged_data
-        where deathtime is null or deathtime >= intime + interval '3' day)
+        from merged_data)
+        -- where deathtime is null or deathtime >= intime + interval '3' day)
 )
 
 , fluid_mv_1 as (
@@ -93,9 +73,9 @@ with fluid_cv_0 as (
 , fluid_mv_2 as (
     select icustay_id, itemid, nday,
         amount as amountfull,
-        case when starttime = endtime and (starttime between daystart and dayend) then amount
-            when starttime = endtime and not (starttime between daystart and dayend) then 0
-            else extract (epoch from (overlapend - overlapstart)) / extract (epoch from (endtime - starttime)) * amount end as amount,
+        case when starttime = endtime and (starttime >= daystart and starttime < dayend) then amount
+            when starttime = endtime and not (starttime >= daystart and starttime < dayend) then 0
+            else 1.0 * amount * extract (epoch from (overlapend - overlapstart)) / extract (epoch from (endtime - starttime)) end as amount,
         starttime, endtime, daystart, dayend, overlapstart, overlapend
     from fluid_mv_1
 )
@@ -135,21 +115,6 @@ with fluid_cv_0 as (
     from fluid_0
     group by icustay_id, nday
 )
-
--- , fluid_2 as (
---     select icustay_id,
---         sum(case when nday = 1 then amount else null end) as day1,
---         sum(case when nday = 2 then amount else null end) as day2,
---         sum(case when nday = 3 then amount else null end) as day3
---     from fluid_1
---     group by icustay_id
--- )
-
--- , fluid_3 as (
---     select icustay_id, day1, day2, day3
---     from merged_data co
---     left join fluid_2 using (icustay_id)
--- )
 
 select * from fluid_1;
 

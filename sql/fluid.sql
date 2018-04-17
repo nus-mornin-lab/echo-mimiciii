@@ -5,10 +5,6 @@ with fluid_0 as (
     full outer join
     (select icustay_id, nday, amount as output from fluid_output) fo
     using (icustay_id, nday)
-
-    -- select fi.icustay_id, fo.nday, fi.amount as input, fo.amount as output
-    -- from fluid_input fi
-    -- full outer join fluid_output fo on fi.icustay_id = fo.icustay_id and fi.nday = fo.nday
 )
 
 , fluid_1 as (
