@@ -54,21 +54,6 @@ with norepinephrine_cv as (
     group by icustay_id
 )
 
-/*
-, dobutamine as (
-    select distinct icustay_id, 1 as dobutamine_flag
-    from dobutaminedurations
-)
-
-, dobutamine_flag as (
-    select icustay_id, coalesce(dobutamine_flag, 0) as dobutamine_flag
-    from cohort
-    natural left join dobutamine
-)
-*/
-
--- select * from norepinephrine_max;
-
 , vasofree_0 as (
     select icustay_id, starttime, 
         case when (co.intime + interval '28' day) <= endtime then (co.intime + interval '28' day) else endtime end as endtime,

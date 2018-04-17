@@ -49,10 +49,16 @@ create materialized view lactate_death_non as (
 
 drop materialized view if exists lactate_discharge_non cascade;
 create materialized view lactate_discharge_non as (
+    with stg_0 as (
+        select *
+        from merged_data co
+        left join (select hadm_id, dischtime from admissions) ad using (hadm_id)
+    )
+
     select co.hadm_id
-    from merged_data co
+    from stg_0 co
     inner join lactate_before_non sr
     on co.hadm_id = sr.hadm_id
     and (co.deathtime is null or deathtime >= (sr.charttime + interval '2' day))
-    and co.outtime < (sr.charttime + interval '2' day)
+    and co.dischtime < (sr.charttime + interval '2' day)
 );

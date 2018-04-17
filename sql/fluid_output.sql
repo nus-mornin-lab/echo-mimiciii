@@ -27,7 +27,7 @@ with days as (
 , output_1 as (
     select icustay_id, nday, amount, charttime, daystart, dayend
     from output_0
-    where charttime between daystart and dayend
+    where charttime >= daystart and charttime < dayend
 )
 
 , output_2 as (

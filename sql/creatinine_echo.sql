@@ -53,9 +53,15 @@ create materialized view creatinine_death_echo as (
 
 drop materialized view if exists creatinine_discharge_echo cascade;
 create materialized view creatinine_discharge_echo as (
+    with stg_0 as (
+        select *
+        from merged_data co
+        left join (select hadm_id, dischtime from admissions) ad using (hadm_id)
+    )
+
     select hadm_id
-    from merged_data
+    from stg_0
     where echo = 1
     and (deathtime is null or deathtime >= (echo_time + interval '3' day))
-    and outtime < (echo_time + interval '3' day)
+    and dischtime < (echo_time + interval '3' day)
 );
