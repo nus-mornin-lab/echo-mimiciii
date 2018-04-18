@@ -2,20 +2,20 @@ with days as (
     (select icustay_id, intime as daystart,
         intime + interval '1' day as dayend,
         1 as nday
-    from merged_data)
-    -- where deathtime is null or deathtime >= intime + interval '3' day)
+    from merged_data
+    where deathtime is null or deathtime >= intime + interval '3' day)
     union
     (select icustay_id, intime + interval '1' day as daystart,
         intime + interval '2' day as dayend,
         2 as nday
-    from merged_data)
-    -- where deathtime is null or deathtime >= intime + interval '3' day)
+    from merged_data
+    where deathtime is null or deathtime >= intime + interval '3' day)
     union
     (select icustay_id, intime + interval '2' day as daystart,
         intime + interval '3' day as dayend,
         3 as nday
-    from merged_data)
-    -- where deathtime is null or deathtime >= intime + interval '3' day)
+    from merged_data
+    where deathtime is null or deathtime >= intime + interval '3' day)
 )
 
 , output_0 as (
